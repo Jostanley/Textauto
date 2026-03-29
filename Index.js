@@ -1,37 +1,37 @@
-const express = require('express')
-const messagingReponse = require("twilio")
-const app = express()
-app.use(express.json())
+const express = require("express");
+const { MessagingResponse } = require("twilio").twiml;
 
-app.get('/', (req,res)=>{
- return res.status(200).json({
-   message:"robot is coming ! wait amoment"
- })
-})
+const app = express();
 
-app.post("/sentmsg", (req, res)=>{
-  const chatbx = new messagingReponse()
-  chatbx.message("robot is busy wait a moment")
-  return res.status(200).send(chatbx.toString())
-})
+// IMPORTANT: Twilio uses urlencoded
+app.use(express.urlencoded({ extended: false }));
 
+app.get("/", (req, res) => {
+  return res.status(200).json({
+    message: "robot is coming! wait a moment",
+  });
+});
+
+// WhatsApp webhook
 app.post("/whatsapp", (req, res) => {
   const incomingMsg = req.body.Body || "";
   const from = req.body.From;
 
   console.log(`Message from ${from}: ${incomingMsg}`);
 
-  // Create Twilio response
   const twiml = new MessagingResponse();
+
   twiml.message(
-    `Hello! 👋\nWe received your message: "${incomingMsg}".\nThank you for contacting us!`
+    `Hello 👋\nWe received: "${incomingMsg}"\nWe will reply shortly.`
   );
 
   res.writeHead(200, { "Content-Type": "text/xml" });
   res.end(twiml.toString());
 });
 
+// fallback port
+const port = process.env.PORT || 3000;
 
-app.listen(3000, ()=>{
-  console.log("app listen on port 3000")
-})
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
